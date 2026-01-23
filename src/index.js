@@ -111,6 +111,7 @@ app.use(passport.initialize());
 
 // API 라우트
 app.use('/api/auth', authRoutes);
+app.use('/auth', authRoutes);  // OAuth 콜백용 (/auth/google/callback)
 app.use('/api/news', newsRoutes);
 app.use('/api/summary', applyCopyrightSafety, summaryRoutes);
 app.use('/api/admin', adminRoutes);
