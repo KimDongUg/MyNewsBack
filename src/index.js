@@ -64,7 +64,7 @@ app.use(addSecurityHeaders);
 // CORS 설정 (환경변수로 프론트엔드 URL 설정 가능)
 const allowedOrigins = process.env.CORS_ORIGINS
   ? process.env.CORS_ORIGINS.split(',')
-  : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:3000'];
+  : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:5176', 'http://localhost:5177', 'http://localhost:5178', 'http://localhost:3000'];
 
 app.use(cors({
   origin: allowedOrigins,
