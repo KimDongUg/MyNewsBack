@@ -72,7 +72,7 @@ const allowedOrigins = [
   'http://localhost:5178',
   'http://localhost:3000',
   // 프로덕션
-  'https://my-news-three.vercel.app',
+  'https://myfavoritenews.vercel.app',
   // 환경변수 추가 도메인
   ...(process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',') : [])
 ];
