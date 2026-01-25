@@ -296,7 +296,7 @@ export const crawlConfig = {
   userAgent: 'MyNewsBot/1.0 (+https://mynews.example.com/bot)',
 
   // 카테고리당 최대 아이템 수
-  maxItemsPerCategory: 10,
+  maxItemsPerCategory: 20,
 
   // 타임아웃
   timeout: 10000 // 10초
