@@ -281,6 +281,20 @@ export const sources = {
       type: 'rss',
       enabled: true
     }
+  ],
+  '국방': [
+    {
+      name: 'Google News 국방',
+      url: 'https://news.google.com/rss/search?q=%EA%B5%AD%EB%B0%A9+%EA%B5%B0%EC%82%AC&hl=ko&gl=KR&ceid=KR:ko',
+      type: 'rss',
+      enabled: true
+    },
+    {
+      name: '안보 뉴스',
+      url: 'https://news.google.com/rss/search?q=%EC%95%88%EB%B3%B4+%EB%B6%81%ED%95%9C+%EB%AF%B8%EC%82%AC%EC%9D%BC&hl=ko&gl=KR&ceid=KR:ko',
+      type: 'rss',
+      enabled: true
+    }
   ]
 };
 
