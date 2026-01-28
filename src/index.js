@@ -1,6 +1,17 @@
+// 🔥 환경 변수를 가장 먼저 로드 (ES 모듈에서 중요!)
+import 'dotenv/config';
+
+// 환경 변수 로드 확인 (서버 시작 시 출력)
+console.log('=== 환경 변수 로드 확인 ===');
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('KAKAO_CLIENT_ID:', process.env.KAKAO_CLIENT_ID || '❌ 없음');
+console.log('KAKAO_CLIENT_SECRET:', process.env.KAKAO_CLIENT_SECRET ? `있음 (길이: ${process.env.KAKAO_CLIENT_SECRET.length})` : '❌ 없음');
+console.log('KAKAO_CALLBACK_URL:', process.env.KAKAO_CALLBACK_URL || '❌ 없음');
+console.log('FRONTEND_URL:', process.env.FRONTEND_URL || '❌ 없음');
+console.log('===========================');
+
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import passport from 'passport';
 
 // 라우트
@@ -53,45 +64,72 @@ import * as sessionManager from './services/sessionManager.js';
 // 컴플라이언스
 import { auditAllSummaries, getComplianceStats } from './compliance/complianceChecker.js';
 
-// 환경변수 로드
-dotenv.config();
+// 환경변수는 이미 맨 위에서 로드됨 (import 'dotenv/config')
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// 보안 미들웨어 (가장 먼저 적용)
-app.use(helmetMiddleware);
-app.use(addSecurityHeaders);
+// ⚠️ CORS를 가장 먼저 설정 (Helmet보다 먼저!)
+// 허용할 origin 목록
+const allowedOrigins = [
+  'https://myfavoritenews.vercel.app',
+  'http://localhost:3000',
+  'http://localhost:5173',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:5173',
+  process.env.FRONTEND_URL,
+].filter(Boolean);
 
 // CORS 설정
-const allowedOrigins = [
-  // 프로덕션
-  'https://myfavoritenews.vercel.app',
-  // 환경변수 추가 도메인
-  ...(process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',') : [])
-];
-
-app.use(cors({
+const corsOptions = {
   origin: (origin, callback) => {
-    // origin이 없는 경우 (같은 origin 또는 서버 요청) 허용
-    if (!origin) return callback(null, true);
-
-    // localhost 개발 환경은 모두 허용
-    if (origin.startsWith('http://localhost:')) {
+    // origin이 없는 경우 (같은 origin, Postman, cron-job 등) 허용
+    if (!origin) {
       return callback(null, true);
     }
 
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.warn(`[CORS] 차단된 origin: ${origin}`);
-      callback(new Error('CORS not allowed'));
+    // localhost 개발 환경 모두 허용
+    if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+      return callback(null, true);
     }
+
+    // 모든 vercel.app 도메인 허용 (프로덕션 + 프리뷰)
+    if (origin.includes('vercel.app')) {
+      return callback(null, true);
+    }
+
+    // 허용 목록에 있으면 허용
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    // 그 외도 허용 (로그만 남김)
+    console.log(`[CORS] Origin 허용: ${origin}`);
+    callback(null, true);
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-}));
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'X-Requested-With',
+    'Accept',
+    'Origin',
+    'Cache-Control'
+  ],
+  exposedHeaders: ['Content-Length', 'X-Request-Id'],
+  maxAge: 86400, // preflight 캐시 24시간
+};
+
+// CORS 미들웨어 적용 (가장 먼저!)
+app.use(cors(corsOptions));
+
+// OPTIONS 프리플라이트 요청 명시적 처리
+app.options('*', cors(corsOptions));
+
+// 보안 미들웨어 (CORS 다음에 적용)
+app.use(helmetMiddleware);
+app.use(addSecurityHeaders);
 
 // 기본 미들웨어
 app.use(express.json({ limit: '10mb' }));
